@@ -190,6 +190,27 @@ class Mail_smtp extends Mail {
     var $socket_options = array();
 
     /**
+     * Require verification of SSL certificate used. Default is TRUE.
+     *
+     * @var boolean
+     */
+    var $verify_peer = true;
+
+    /**
+     *  Require verification of peer name. Default is TRUE.
+     *
+     * @var boolean
+     */
+    var $verify_peer_name = true;
+
+    /**
+     * Allow self-signed certificates. Requires verify_peer. Default is FALSE.
+     *
+     * @var boolean
+     */
+    var $allow_self_signed = false;
+
+    /**
      * Constructor.
      *
      * Instantiates a new Mail_smtp:: object based on the parameters
@@ -206,6 +227,9 @@ class Mail_smtp extends Mail {
      *     debug       Activate SMTP debug mode? Defaults to false.
      *     persist     Should the SMTP connection persist?
      *     pipelining  Use SMTP command pipelining
+     *     verify_peer        Require verification of SSL certificate used.
+     *     verify_peer_name   Require verification of peer name.
+     *     allow_self_signed  Allow self-signed certificates. Requires verify_peer.
      *
      * If a parameter is present in the $params array, it replaces the
      * default.
@@ -226,6 +250,9 @@ class Mail_smtp extends Mail {
         if (isset($params['persist'])) $this->persist = (bool)$params['persist'];
         if (isset($params['pipelining'])) $this->pipelining = (bool)$params['pipelining'];
         if (isset($params['socket_options'])) $this->socket_options = $params['socket_options'];
+        if (isset($params['verify_peer'])) $this->verify_peer = $params['verify_peer'];
+        if (isset($params['verify_peer_name'])) $this->verify_peer_name = $params['verify_peer_name'];
+        if (isset($params['allow_self_signed'])) $this->allow_self_signed = $params['allow_self_signed'];
         // Deprecated options
         if (isset($params['verp'])) {
             $this->addServiceExtensionParameter('XVERP', is_bool($params['verp']) ? null : $params['verp']);
@@ -385,7 +412,10 @@ class Mail_smtp extends Mail {
                                      $this->localhost,
                                      $this->pipelining,
                                      0,
-                                     $this->socket_options);
+                                     $this->socket_options,
+                                     $this->verify_peer,
+                                     $this->verify_peer_name,
+                                     $this->allow_self_signed);
 
         /* If we still don't have an SMTP object at this point, fail. */
         if (is_object($this->_smtp) === false) {
