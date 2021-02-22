@@ -1193,7 +1193,7 @@ class BackendIMAP extends BackendDiff implements ISearchProvider {
                 }
             }
 
-            ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendIMAP->GetMessage(): after thinking a bit we will use: %d", $bpReturnType));
+            ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendIMAP->GetMessage(): after thinking a bit we will use return type: %d", $bpReturnType));
 
 
             $output = new SyncMail();
@@ -1471,6 +1471,7 @@ class BackendIMAP extends BackendDiff implements ISearchProvider {
                         //add part as attachment if it's disposition indicates so or if it is not a text part
                         if ((isset($part->disposition) && ($part->disposition == "attachment" || $part->disposition == "inline")) ||
                             (isset($part->ctype_primary) && $part->ctype_primary != "text")) {
+                            ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendIMAP->GetMessage(): Got attachment [primary_type %s secondary_type %s]", $part->ctype_primary, $part->ctype_secondary));
 
                             if (isset($part->d_parameters['filename']))
                                 $attname = $part->d_parameters['filename'];
