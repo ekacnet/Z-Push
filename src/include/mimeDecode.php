@@ -1020,17 +1020,17 @@ class Mail_mimeDecode
      * Get all parts in the message with specified type and concatenate them together, unless the
      * Content-Disposition is 'attachment', in which case the text is apparently an attachment.
      *
-     * @param string        $message        mimedecode message(part)
+     * @param string        &$message       mimedecode message(part) reference
      * @param string        $message        message subtype
      * @param string        &$body          body reference
      * @param boolean       $replace_nr     replace \n\r with \n
      *
-     * @return void
+     * @return A boolean indicating if a body of the given type was found
      * @access public
      */
-    static function getBodyRecursive($message, $subtype, &$body, $replace_nr = false) {
+    static function getBodyRecursive(&$message, $subtype, &$body, $replace_nr = false) {
         // TODO: move this function into general utils
-        if (!isset($message->ctype_primary)) return;
+        if (!isset($message->ctype_primary)) return false;
         if (strcasecmp($message->ctype_primary, "text") == 0 && strcasecmp($message->ctype_secondary, $subtype) == 0 && isset($message->body)) {
             if ($replace_nr) {
                 $body .= str_replace("\n", "\r\n", str_replace("\r", "", $message->body));
@@ -1038,18 +1038,43 @@ class Mail_mimeDecode
             else {
                 $body .= $message->body;
             }
+            return true;
         }
 
         if (strcasecmp($message->ctype_primary,"multipart") == 0 && isset($message->parts) && is_array($message->parts)) {
+            $found = false;
+            if ($message->ctype_secondary == "alternative") {
+                $is_alternative = true;
+            } else {
+                $is_alternative = false;
+            }
             foreach($message->parts as $part) {
+                if ($is_alternative) {
+                    // By default hide all the alternative parts, if one of them
+                    // match the desired type it will be returned in the body
+                    $part->hide = true;
+                }
                 // Check testing/samples/m1009.txt
                 // Content-Type: text/plain; charset=us-ascii; name="hareandtoroise.txt" Content-Transfer-Encoding: 7bit Content-Disposition: inline; filename="hareandtoroise.txt"
                 // We don't want to show that file text (outlook doesn't show it), so if we have content-disposition we don't apply recursivity
-                if (!isset($part->disposition))  {
-                    Mail_mimeDecode::getBodyRecursive($part, $subtype, $body, $replace_nr);
+                // Ignore disposition for multipart/alternative there a lot of emails with Content-Disposition: inline for text/html or text/plain
+                if (!isset($part->disposition) || $is_alternative)  {
+                    if (Mail_mimeDecode::getBodyRecursive($part, $subtype, $body, $replace_nr)) {
+                        $found = true;
+                    }
                 }
             }
+            if ($found) {
+                ZLog::Write(LOGLEVEL_DEBUG, "getBodyRecursive() found body of subtype ".$subtype." in multipart.");
+            }
+            if (!$found && $is_alternative) {
+                foreach($message->parts as $part) {
+                    $part->hide = false;
+                }
+            }
+            return $found;
         }
+        return false;
     }
 
     /**

@@ -1471,6 +1471,11 @@ class BackendIMAP extends BackendDiff implements ISearchProvider {
                         //add part as attachment if it's disposition indicates so or if it is not a text part
                         if ((isset($part->disposition) && ($part->disposition == "attachment" || $part->disposition == "inline")) ||
                             (isset($part->ctype_primary) && $part->ctype_primary != "text")) {
+                            if (isset($part->hide) && $part->hide) {
+                                // When we parsed this part we decided that it needed to be hidden
+                                continue;
+                                ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendIMAP->GetMessage(): Got attachment [primary_type %s secondary_type %s] but it's hidden", $part->ctype_primary, $part->ctype_secondary));
+                            }
                             ZLog::Write(LOGLEVEL_DEBUG, sprintf("BackendIMAP->GetMessage(): Got attachment [primary_type %s secondary_type %s]", $part->ctype_primary, $part->ctype_secondary));
 
                             if (isset($part->d_parameters['filename']))
