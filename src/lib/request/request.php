@@ -109,6 +109,8 @@ class Request {
             self::$getUser = strtolower($_GET["User"]);
             if(defined('USE_FULLEMAIL_FOR_LOGIN') && ! USE_FULLEMAIL_FOR_LOGIN) {
                 self::$getUser = Utils::GetLocalPartFromEmail(self::$getUser);
+            } else {
+                self::$getUser = Utils::FilterPlusAddressingFromEmail(self::$getUser);
             }
         }
         if(isset($_GET["DeviceId"]))
@@ -140,6 +142,8 @@ class Request {
                 self::$getUser = strtolower(self::$base64QueryDecoded[self::COMMANDPARAM_USER]);
                 if(defined('USE_FULLEMAIL_FOR_LOGIN') && ! USE_FULLEMAIL_FOR_LOGIN) {
                     self::$getUser = Utils::GetLocalPartFromEmail(self::$getUser);
+                } else {
+                    self::$getUser = Utils::FilterPlusAddressingFromEmail(self::$getUser);
                 }
             }
 
@@ -176,6 +180,8 @@ class Request {
             list(self::$getUser,) = Utils::SplitDomainUser(strtolower($_SERVER['PHP_AUTH_USER']));
             if(defined('USE_FULLEMAIL_FOR_LOGIN') && ! USE_FULLEMAIL_FOR_LOGIN) {
                 self::$getUser = Utils::GetLocalPartFromEmail(self::$getUser);
+            } else {
+                self::$getUser = Utils::FilterPlusAddressingFromEmail(self::$getUser);
             }
         }
 
@@ -195,6 +201,8 @@ class Request {
 
         if(defined('USE_FULLEMAIL_FOR_LOGIN') && ! USE_FULLEMAIL_FOR_LOGIN) {
             self::$authUser = Utils::GetLocalPartFromEmail(self::$authUser);
+        } else {
+            self::$authUser = Utils::FilterPlusAddressingFromEmail(self::$authUser);
         }
 
         // get & convert configured memory limit

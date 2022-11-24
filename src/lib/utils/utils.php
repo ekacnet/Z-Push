@@ -930,6 +930,28 @@ class Utils {
     }
 
     /**
+     * Returns an email without the + part
+     *
+     * @param string $email
+     *
+     * @access public
+     * @return string
+     */
+    public static function FilterPlusAddressingFromEmail($email) {
+        $pos = strpos($email, '@');
+        if ($pos === false) {
+            return $email;
+        } else {
+            $pos2 = strpos($email, '+');
+            if ($pos2 === false) {
+                return $email;
+            }
+        }
+        $str = substr($email, 0, $pos2) . substr($email, $pos);
+        return $str;
+    }
+
+    /**
      * Returns the local part from email address.
      *
      * @param string $email
